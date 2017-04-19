@@ -6,10 +6,11 @@ import pygame
 class NPC:
     """ Base class for NPC """
 
-    def __init__(self, pos_x, pos_y, size, screen_width, screen_height,
+    def __init__(self, pos_x, pos_y, size, radius, screen_width, screen_height,
                  speed=None, bullets=None, num=None):
         self.rect = pygame.Rect(pos_x, pos_y, size, size)
         self.size = size
+        self.radius = radius
         self.screen_width = screen_width
         self.screen_height = screen_height
 
@@ -28,14 +29,14 @@ class NPC:
     def y(self):
         return self.rect.y
 
-    def move(self, x=0, y=0):
+    def move(self, x_step=0, y_step=0):
 
         if self.x < 0 or self.x >= self.screen_width - self.size - self.speed:
-            x = 0
+            x_step = 0
         if self.y < 0 or self.y >= self.screen_height - self.size - self.speed:
-            y = 0
+            y_step = 0
 
-        self.rect = self.rect.move(x, y)
+        self.rect = self.rect.move(x_step, y_step)
 
 
 class Hero(NPC):
@@ -45,19 +46,23 @@ class Hero(NPC):
 
         for item in doc['cmd_lst']:
             if item['cmd'] == 'move':
-                x = y = 0
+                x_step = y_step = 0
 
-                if item['x'] == 1:
-                    x = self.speed
-                elif item['x'] == -1:
-                    x = -self.speed
+                if item['xd'] == 1:
+                    x_step = self.speed
+                elif item['xd'] == -1:
+                    x_step = -self.speed
+                else:
+                    x_step = 0
 
-                if item['y'] == 1:
-                    y = self.speed
-                elif item['y'] == -1:
-                    y = -self.speed
+                if item['yd'] == 1:
+                    y_step = self.speed
+                elif item['yd'] == -1:
+                    y_step = -self.speed
+                else:
+                    y_step = 0
 
-                self.move(x, y)
+                self.move(x_step, y_step)
 
 
 class Enemy(NPC):
@@ -75,16 +80,21 @@ class EnemyGreen(Enemy):
     speed = 1
 
     def process(self, hero_x, hero_y):
-        x = y = 0
+        x, y = self.rect.center
+        x_step = y_step = 0
 
-        if hero_x > self.x:
-            x = self.speed
-        elif hero_x < self.x:
-            x = -self.speed
+        if hero_x > x:
+            x_step = self.speed
+        elif hero_x < x:
+            x_step = -self.speed
+        else:
+            x_step = 0
 
-        if hero_y > self.y:
-            y = self.speed
-        elif hero_y < self.y:
-            y = -self.speed
+        if hero_y > y:
+            y_step = self.speed
+        elif hero_y < y:
+            y_step = -self.speed
+        else:
+            y_step = 0
 
-        self.move(x, y)
+        self.move(x_step, y_step)

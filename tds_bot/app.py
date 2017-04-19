@@ -5,6 +5,7 @@ from random import randint
 from concurrent.futures import ThreadPoolExecutor
 
 import pygame
+import numpy as np
 
 import tornado.web
 import tornado.gen
@@ -21,12 +22,14 @@ class BotServerApp(tornado.web.Application):
     screen_width = 1024
     screen_height = 768
 
-    hero_size = 30
+    hero_radius = 15
+    hero_size = hero_radius * 2
     hero_color = (255, 255, 255)
     hero_speed = 3
     hero_hp_full = 100
 
-    enemy_size = 20
+    enemy_radius = 10
+    enemy_size = enemy_radius * 2
 
     def __init__(self):
         handlers = [
@@ -34,7 +37,7 @@ class BotServerApp(tornado.web.Application):
         ]
 
         settings = dict(
-            debug=True,
+            debug=True
         )
 
         self.executor = ThreadPoolExecutor(4)
@@ -62,7 +65,8 @@ class BotServerApp(tornado.web.Application):
             EnemyGreen(
                 randint(0, self.screen_width-10),  # x
                 randint(0, self.screen_height-10),  # y
-                20,  # size
+                self.enemy_size,
+                self.enemy_radius,
                 self.screen_width,
                 self.screen_height,
                 num=0  # enemy num (like id)
@@ -85,17 +89,28 @@ class BotServerApp(tornado.web.Application):
                 self.hero.process(doc)
 
             # Draw hero
-            pygame.draw.rect(self.screen, self.hero_color, self.hero.rect)
+            pygame.draw.circle(self.screen, self.hero_color,
+                               self.hero.rect.center, self.hero.radius)
+            hero_x, hero_y = self.hero.rect.center
 
             objects_list = []
             for enemy in enemies:
                 # Move and draw enemy
-                enemy.process(self.hero.x, self.hero.y)
-                pygame.draw.rect(self.screen, enemy.color, enemy.rect)
+                enemy.process(hero_x, hero_y)
+                pygame.draw.circle(self.screen, enemy.color, enemy.rect.center,
+                                   enemy.radius)
+                enemy_x, enemy_y = enemy.rect.center
 
                 # Check for collision
                 if self.hero.rect.colliderect(enemy.rect):
-                    self.hero_hp -= enemy.power
+                    # Colliderect check squares collision but for
+                    # real circles collision distation between centers
+                    # of circles must be <= radiuses sum
+                    need_dt = self.hero_radius + self.enemy_radius
+                    dt = np.sqrt((enemy_x - hero_x)**2 + (enemy_y - hero_y)**2)
+
+                    if dt <= need_dt:
+                        self.hero_hp -= enemy.power
 
                 # Does enemy kills hero
                 if self.hero_hp <= 0:
@@ -104,8 +119,9 @@ class BotServerApp(tornado.web.Application):
 
                 # Enemy description
                 enemy_info = {
-                    'x': enemy.x,
-                    'y': enemy.y,
+                    # cords for !center! of enemy circle
+                    'x': enemy_x,
+                    'y': enemy_y,
                     'enemy_class': enemy.enemy_class,
                     'num': enemy.num,
                     # TODO: enemy bullets
@@ -121,8 +137,9 @@ class BotServerApp(tornado.web.Application):
             # Send info about objects on screen to client
             self.client.write_message(
                 json.dumps(
+                    # cords for !center! of hero circle
                     {'objects': objects_list, 'hp': self.hero_hp, 'status': 1,
-                     'x': self.hero.x, 'y': self.hero.y}
+                     'x': hero_x, 'y': hero_y}
                 )
             )
 
@@ -147,9 +164,10 @@ class BotServerApp(tornado.web.Application):
         pygame.display.init()
 
         self.hero = Hero(
-            int(self.screen_width / 2),
-            int(self.screen_height / 2),
+            int(self.screen_width / 2) - int(self.hero_size / 2),
+            int(self.screen_height / 2) - int(self.hero_size / 2),
             self.hero_size,
+            self.hero_radius,
             self.screen_width,
             self.screen_height,
             self.hero_speed,
