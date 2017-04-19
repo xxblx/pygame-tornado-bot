@@ -60,16 +60,18 @@ class BotServerApp(tornado.web.Application):
         """ pygame event loop, game runs while self.gameover == False """
 
         self.hero_hp = self.hero_hp_full
+        hero_x, hero_y = self.hero.rect.center
+        hero_died = False
+
         # TODO: enemy spawn at iterator steps
         enemies = []
-
-        hero_x, hero_y = self.hero.rect.center
         for i in range(3):
 
             x = randint(0, self.screen_width-10)
             y = randint(0, self.screen_height-10)
             dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
 
+            # Don't spawn enemies near to hero
             while dt <= self.hero_radius*5:
                 x = randint(0, self.screen_width-10)
                 y = randint(0, self.screen_height-10)
@@ -87,7 +89,6 @@ class BotServerApp(tornado.web.Application):
                 )
             )
 
-        hero_died = False
         self.client.write_message(json.dumps({'status': 1}))
 
         while not self.gameover:
