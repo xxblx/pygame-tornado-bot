@@ -13,8 +13,6 @@ class Client(WebsocketClient):
         if 'objects' not in server_info:
             return
 
-        print(server_info)
-
         # Hero cordinates
         x, y = server_info['x'], server_info['y']
 

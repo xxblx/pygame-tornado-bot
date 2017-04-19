@@ -61,17 +61,31 @@ class BotServerApp(tornado.web.Application):
 
         self.hero_hp = self.hero_hp_full
         # TODO: enemy spawn at iterator steps
-        enemies = [
-            EnemyGreen(
-                randint(0, self.screen_width-10),  # x
-                randint(0, self.screen_height-10),  # y
-                self.enemy_size,
-                self.enemy_radius,
-                self.screen_width,
-                self.screen_height,
-                num=0  # enemy num (like id)
+        enemies = []
+
+        hero_x, hero_y = self.hero.rect.center
+        for i in range(3):
+
+            x = randint(0, self.screen_width-10)
+            y = randint(0, self.screen_height-10)
+            dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
+
+            while dt <= self.hero_radius*5:
+                x = randint(0, self.screen_width-10)
+                y = randint(0, self.screen_height-10)
+                dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
+
+            enemies.append(
+                EnemyGreen(
+                    randint(0, self.screen_width-10),  # x
+                    randint(0, self.screen_height-10),  # y
+                    self.enemy_size,
+                    self.enemy_radius,
+                    self.screen_width,
+                    self.screen_height,
+                    num=i  # enemy num (like id)
+                )
             )
-        ]
 
         hero_died = False
         self.client.write_message(json.dumps({'status': 1}))
@@ -104,7 +118,7 @@ class BotServerApp(tornado.web.Application):
                 # Check for collision
                 if self.hero.rect.colliderect(enemy.rect):
                     # Colliderect check squares collision but for
-                    # real circles collision distation between centers
+                    # real circles collision distantion between centers
                     # of circles must be <= radiuses sum
                     need_dt = self.hero_radius + self.enemy_radius
                     dt = np.sqrt((enemy_x - hero_x)**2 + (enemy_y - hero_y)**2)
@@ -123,7 +137,7 @@ class BotServerApp(tornado.web.Application):
                     'x': enemy_x,
                     'y': enemy_y,
                     'enemy_class': enemy.enemy_class,
-                    'num': enemy.num,
+                    'num': enemy.num
                     # TODO: enemy bullets
                 }
                 objects_list.append(enemy_info)
