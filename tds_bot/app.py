@@ -93,14 +93,14 @@ class BotServerApp(tornado.web.Application):
 
             # Don't spawn enemies near to hero
             while dt <= self.hero_radius*5:
-                x = randint(0, self.screen_width-10)
-                y = randint(0, self.screen_height-10)
+                x = randint(10, self.screen_width) - 10
+                y = randint(10, self.screen_height) - 10
                 dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
 
             enemies.append(
                 EnemyGreen(
-                    randint(0, self.screen_width-10),  # x
-                    randint(0, self.screen_height-10),  # y
+                    x,  # x
+                    y,  # y
                     self.enemy_size,
                     self.enemy_radius,
                     self.screen_width,
