@@ -13,6 +13,11 @@ class Client(WebsocketClient):
         if 'objects' not in server_info:
             return
 
+        # Here will be saved instructions
+        hero_cmds = {
+            'cmd_lst': []
+        }
+
         # Hero cordinates
         x, y = server_info['x'], server_info['y']
 
@@ -28,6 +33,11 @@ class Client(WebsocketClient):
             if e['num'] == nearest_enemy:
                 enemy_x = e['x']
                 enemy_y = e['y']
+
+        # Shoot to nearest enemy
+        hero_cmds['cmd_lst'].append(
+                {'cmd': 'shoot', 'x': enemy_x, 'y': enemy_y}
+        )
 
         # Move into reversed direction from nearest enemy
         # xd - x direction, yd - y direction
@@ -45,9 +55,7 @@ class Client(WebsocketClient):
         else:
             yd = 0
 
-        hero_cmds = {
-            'cmd_lst': [{'cmd': 'move', 'xd': xd, 'yd': yd}]
-        }
+        hero_cmds['cmd_lst'].append({'cmd': 'move', 'xd': xd, 'yd': yd})
         self.write(hero_cmds)
 
 

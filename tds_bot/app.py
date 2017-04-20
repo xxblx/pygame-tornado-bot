@@ -25,11 +25,12 @@ class BotServerApp(tornado.web.Application):
     hero_radius = 15
     hero_size = hero_radius * 2
     hero_color = (255, 255, 255)
-    hero_speed = 3
+    hero_speed = 3.5
     hero_hp_full = 100
 
     hero_bullet_radius = 3
     hero_bullet_size = hero_bullet_radius * 2
+    hero_bullet_color = (239, 0, 255)
     hero_bullet_speed = 6
 
     enemy_radius = 10
@@ -110,6 +111,28 @@ class BotServerApp(tornado.web.Application):
                                self.hero.rect.center, self.hero.radius)
             hero_x, hero_y = self.hero.rect.center
 
+            # Bullets fly and collision
+            bullet_rm_set = set()
+            for bullet in self.hero.bullets:
+                bullet.process()
+
+                # TODO: bullet kills enemies
+
+                pygame.draw.circle(self.screen, self.hero_bullet_color,
+                                   bullet.rect.center, bullet.radius)
+
+                # Delete bullets if they escape screen
+                bx, by = bullet.rect.x, bullet.rect.y
+                if bx < -bullet.size or bx >= self.screen_width+bullet.size:
+                    bullet_rm_set.add(bullet)
+                elif by < -bullet.size or by >= self.screen_height+bullet.size:
+                    bullet_rm_set.add(bullet)
+
+            for bullet in bullet_rm_set:
+                self.hero.bullets.remove(bullet)
+
+            del bullet_rm_set
+
             objects_list = []
             for enemy in enemies:
                 # Move and draw enemy
@@ -188,7 +211,10 @@ class BotServerApp(tornado.web.Application):
             self.screen_width,
             self.screen_height,
             self.hero_speed,
-            True
+            bullets=True,
+            bullet_size=self.hero_bullet_size,
+            bullet_radius=self.hero_bullet_radius,
+            bullet_speed=self.hero_bullet_speed
         )
 
     def destroy_world(self):
