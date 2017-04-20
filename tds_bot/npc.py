@@ -100,11 +100,6 @@ class Hero(NPC):
         self.bullets_created += 1
         self.bullets.append(bullet)
 
-#        # Get floor rounded steps and +1 step if div res will be float
-#        steps = dt // self.bullet_speed + int(bool(dt % self.bullet_speed))
-#        x_step = (x_target - x) / steps
-#        y_step = (y_target - y) / steps
-
 
 class HeroBullet(NPC):
     """ Bullet created by Hero """

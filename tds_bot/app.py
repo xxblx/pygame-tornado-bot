@@ -196,12 +196,6 @@ class BotServerApp(tornado.web.Application):
                 )
             )
 
-#            pygame.draw.rect(self.screen, self.hero_color, self.hero.rect)
-
-#            for enemy in enemies:
-#                enemy.process()
-#                pygame.draw.rect(self.screen, enemy.color, enemy.rect)
-
             pygame.display.flip()
             self.clock.tick(self.fps)
 
