@@ -127,12 +127,30 @@ class BotServerApp(tornado.web.Application):
 
             # Bullets fly and collision
             bullet_rm_set = set()
+            enemies_rm_set = set()
             for bullet in self.hero.bullets:
                 bullet.process()
                 pygame.draw.circle(self.screen, self.hero_bullet_color,
                                    bullet.rect.center, bullet.radius)
 
-                # TODO: bullet kills enemies
+                bullet_x, bullet_y = bullet.rect.center
+                enemy_killed = False
+                for enemy in enemies:
+                    if bullet.rect.colliderect(enemy.rect):
+                        enemy_x, enemy_y = enemy.rect.center
+                        need_dt = self.hero_bullet_radius + self.enemy_radius
+                        dt = np.sqrt(
+                            (enemy_x - bullet_x)**2 + (enemy_y - bullet_y)**2
+                        )
+
+                        if dt <= need_dt:
+                            enemies_rm_set.add(enemy)
+                            bullet_rm_set.add(bullet)
+                            enemy_killed = True
+                            break
+
+                if enemy_killed:
+                    continue
 
                 # Delete bullets if they escape screen
                 bx, by = bullet.rect.x, bullet.rect.y
@@ -143,8 +161,11 @@ class BotServerApp(tornado.web.Application):
 
             for bullet in bullet_rm_set:
                 self.hero.bullets.remove(bullet)
+            for enemy in enemies_rm_set:
+                enemies.remove(enemy)
 
             del bullet_rm_set
+            del enemies_rm_set
 
             objects_list = []
             for enemy in enemies:
@@ -209,9 +230,12 @@ class BotServerApp(tornado.web.Application):
         self.clock = pygame.time.Clock()
         pygame.init()
         pygame.display.init()
+        self.game_matrix = np.zeros((self.screen_width, self.screen_height))
 
     def destroy_world(self):
         self.screen.fill((0, 0, 0))
+        self.screen = None
+        self.game_matrix = None
         pygame.display.quit()
         pygame.quit()
 

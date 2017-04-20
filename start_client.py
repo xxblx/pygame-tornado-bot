@@ -10,7 +10,7 @@ class Client(WebsocketClient):
 
     def process(self, server_info):
 
-        if 'objects' not in server_info:
+        if 'objects' not in server_info or not server_info['objects']:
             return
 
         # Here will be saved instructions
@@ -23,6 +23,7 @@ class Client(WebsocketClient):
 
         # Distances to enemies
         distances = []
+
         for e in server_info['objects']:
             t = (np.sqrt((e['x'] - x)**2 + (e['y'] - y)**2), e['num'])
             distances.append(t)
