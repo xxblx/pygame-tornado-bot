@@ -62,6 +62,20 @@ class BotServerApp(tornado.web.Application):
     def run_pygame_loop(self):
         """ pygame event loop, game runs while self.gameover == False """
 
+        self.hero = Hero(
+            int(self.screen_width / 2) - int(self.hero_size / 2),
+            int(self.screen_height / 2) - int(self.hero_size / 2),
+            self.hero_size,
+            self.hero_radius,
+            self.screen_width,
+            self.screen_height,
+            self.hero_speed,
+            bullets=True,
+            bullet_size=self.hero_bullet_size,
+            bullet_radius=self.hero_bullet_radius,
+            bullet_speed=self.hero_bullet_speed
+        )
+
         self.hero_hp = self.hero_hp_full
         hero_x, hero_y = self.hero.rect.center
         hero_died = False
@@ -115,11 +129,10 @@ class BotServerApp(tornado.web.Application):
             bullet_rm_set = set()
             for bullet in self.hero.bullets:
                 bullet.process()
-
-                # TODO: bullet kills enemies
-
                 pygame.draw.circle(self.screen, self.hero_bullet_color,
                                    bullet.rect.center, bullet.radius)
+
+                # TODO: bullet kills enemies
 
                 # Delete bullets if they escape screen
                 bx, by = bullet.rect.x, bullet.rect.y
@@ -202,20 +215,6 @@ class BotServerApp(tornado.web.Application):
         self.clock = pygame.time.Clock()
         pygame.init()
         pygame.display.init()
-
-        self.hero = Hero(
-            int(self.screen_width / 2) - int(self.hero_size / 2),
-            int(self.screen_height / 2) - int(self.hero_size / 2),
-            self.hero_size,
-            self.hero_radius,
-            self.screen_width,
-            self.screen_height,
-            self.hero_speed,
-            bullets=True,
-            bullet_size=self.hero_bullet_size,
-            bullet_radius=self.hero_bullet_radius,
-            bullet_speed=self.hero_bullet_speed
-        )
 
     def destroy_world(self):
         self.screen.fill((0, 0, 0))
