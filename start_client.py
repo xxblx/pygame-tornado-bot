@@ -36,6 +36,9 @@ class Client(WebsocketClient):
                 enemy_y = e['y']
 
         # Shoot to nearest enemy
+        # After one shot realoading will be continious on
+        # next 5 iterations that mean on next 5 iterations shoot
+        # cmd will be ignored
         hero_cmds['cmd_lst'].append(
                 {'cmd': 'shoot', 'x': enemy_x, 'y': enemy_y}
         )

@@ -8,8 +8,8 @@ class NPC:
     """ Base class for NPC """
 
     def __init__(self, pos_x, pos_y, size, radius, screen_width, screen_height,
-                 speed=None, bullets=None, num=None, bullet_size=None,
-                 bullet_radius=None, bullet_speed=None,
+                 speed=None, num=None, bullets=None, reload_delay=None,
+                 bullet_size=None, bullet_radius=None, bullet_speed=None,
                  x_step=None, y_step=None):
         self.rect = pygame.Rect(pos_x, pos_y, size, size)
         self.size = size
@@ -19,10 +19,12 @@ class NPC:
 
         if speed is not None:
             self.speed = speed
-        if bullets is not None:
-            self.bullets = []
         if num is not None:
             self.num = num
+        if bullets is not None:
+            self.bullets = []
+        if reload_delay is not None:
+            self.reload_delay = reload_delay
         if bullet_size is not None:
             self.bullet_size = bullet_size
         if bullet_radius is not None:
@@ -58,6 +60,7 @@ class Hero(NPC):
 
     bullets_created = 0
     bullets = []
+    shoot_wait = 0
 
     def process(self, doc):
 
@@ -82,7 +85,11 @@ class Hero(NPC):
                 self.move(x_step, y_step)
 
             elif item['cmd'] == 'shoot':
-                self.shoot(item['x'], item['y'])
+                if self.shoot_wait < 1:
+                    self.shoot(item['x'], item['y'])
+                    self.shoot_wait = self.reload_delay
+                else:
+                    self.shoot_wait -= 1
 
     def shoot(self, x_target, y_target):
 

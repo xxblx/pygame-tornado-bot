@@ -27,6 +27,7 @@ class BotServerApp(tornado.web.Application):
     hero_color = (255, 255, 255)
     hero_speed = 3.5
     hero_hp_full = 100
+    hero_reload_delay = 5
 
     hero_bullet_radius = 3
     hero_bullet_size = hero_bullet_radius * 2
@@ -74,6 +75,7 @@ class BotServerApp(tornado.web.Application):
             self.screen_height,
             self.hero_speed,
             bullets=True,
+            reload_delay=self.hero_reload_delay,
             bullet_size=self.hero_bullet_size,
             bullet_radius=self.hero_bullet_radius,
             bullet_speed=self.hero_bullet_speed
