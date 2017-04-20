@@ -54,13 +54,16 @@ class BotServerApp(tornado.web.Application):
     @tornado.gen.coroutine
     def start_game(self):
         self.gameover = False
-        self.init_world()
-        yield self.run_pygame_loop()
+        self.start_game_engine()
+        yield self.run_game()
 
     @run_on_executor
     @tornado.gen.coroutine
-    def run_pygame_loop(self):
-        """ pygame event loop, game runs while self.gameover == False """
+    def run_game(self):
+        """
+        Method starts pygame event loop,
+        game runs until self.gameover =! False
+        """
 
         self.hero = Hero(
             int(self.screen_width / 2) - int(self.hero_size / 2),
@@ -82,7 +85,7 @@ class BotServerApp(tornado.web.Application):
 
         # TODO: enemy spawn at iterator steps
         enemies = []
-        for i in range(3):
+        for i in range(100):
 
             x = randint(0, self.screen_width-10)
             y = randint(0, self.screen_height-10)
@@ -134,6 +137,7 @@ class BotServerApp(tornado.web.Application):
                                    bullet.rect.center, bullet.radius)
 
                 bullet_x, bullet_y = bullet.rect.center
+                # Collisions with enemies
                 enemy_killed = False
                 for enemy in enemies:
                     if bullet.rect.colliderect(enemy.rect):
@@ -217,22 +221,21 @@ class BotServerApp(tornado.web.Application):
                 )
             )
 
+            # TODO: hp status
+            # TODO: time in game
+
             pygame.display.flip()
             self.clock.tick(self.fps)
 
-    def init_world(self):
-        """ Create new game world """
-
+    def start_game_engine(self):
         self.screen = pygame.display.set_mode(
             (self.screen_width, self.screen_height)
         )
-
         self.clock = pygame.time.Clock()
         pygame.init()
         pygame.display.init()
-        self.game_matrix = np.zeros((self.screen_width, self.screen_height))
 
-    def destroy_world(self):
+    def stop_game_engine(self):
         self.screen.fill((0, 0, 0))
         self.screen = None
         self.game_matrix = None
@@ -259,4 +262,4 @@ class GameHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         self.application.gameover = True
         self.application.client = None
-        self.application.destroy_world()
+        self.application.stop_game_engine()
