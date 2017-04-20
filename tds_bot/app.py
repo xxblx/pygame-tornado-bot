@@ -28,6 +28,10 @@ class BotServerApp(tornado.web.Application):
     hero_speed = 3
     hero_hp_full = 100
 
+    hero_bullet_radius = 3
+    hero_bullet_size = hero_bullet_radius * 2
+    hero_bullet_speed = 6
+
     enemy_radius = 10
     enemy_size = enemy_radius * 2
 
@@ -36,9 +40,7 @@ class BotServerApp(tornado.web.Application):
             (r'/', GameHandler)
         ]
 
-        settings = dict(
-            debug=True
-        )
+        settings = {'debug': True}
 
         self.executor = ThreadPoolExecutor(4)
         self.client = None
@@ -143,7 +145,7 @@ class BotServerApp(tornado.web.Application):
                 }
                 objects_list.append(enemy_info)
 
-            # If hero is dead - gameover =)
+            # If hero is dead - gameover >_<
             if hero_died:
                 self.client.write_message(json.dumps({'status': 0}))
                 self.gameover = True

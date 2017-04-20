@@ -64,20 +64,12 @@ class Hero(NPC):
 
                 self.move(x_step, y_step)
 
+    def shoot(self, x, y):
+        pass
+
 
 class Enemy(NPC):
     """ Base class for npc enemy """
-
-    pass
-
-
-class EnemyGreen(Enemy):
-    """ Easy enemy """
-
-    enemy_class = 'green'
-    color = (51, 222, 32)
-    power = 5
-    speed = 1
 
     def process(self, hero_x, hero_y):
         x, y = self.rect.center
@@ -98,3 +90,12 @@ class EnemyGreen(Enemy):
             y_step = 0
 
         self.move(x_step, y_step)
+
+
+class EnemyGreen(Enemy):
+    """ Easy enemy """
+
+    enemy_class = 'green'
+    color = (51, 222, 32)
+    power = 5
+    speed = 1
