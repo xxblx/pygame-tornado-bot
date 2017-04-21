@@ -25,7 +25,7 @@ class BotServerApp(tornado.web.Application):
     hero_radius = 15
     hero_size = hero_radius * 2
     hero_color = (255, 255, 255)
-    hero_speed = 3.5
+    hero_speed = 3
     hero_hp_full = 100
     hero_reload_delay = 5
 
