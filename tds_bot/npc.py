@@ -146,3 +146,21 @@ class EnemyGreen(Enemy):
     color = (51, 222, 32)
     power = 5
     speed = 1
+
+
+class EnemyYellow(Enemy):
+    """ Medium enemy """
+
+    enemy_class = 'yellow'
+    color = (255, 230, 0)
+    power = 5
+    speed = 1
+
+
+class EnemyRed(Enemy):
+    """ Hard enemy """
+
+    enemy_class = 'red'
+    color = (236, 0, 0)
+    power = 5
+    speed = 3
