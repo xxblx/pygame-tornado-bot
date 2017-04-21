@@ -80,6 +80,8 @@ class Hero(NPC):
 
     def process(self, doc):
 
+        shot_used = False
+
         for item in doc['cmd_lst']:
             if item['cmd'] == 'move':
                 x_step = y_step = 0
@@ -100,10 +102,11 @@ class Hero(NPC):
 
                 self.move(x_step, y_step)
 
-            elif item['cmd'] == 'shoot':
+            elif item['cmd'] == 'shoot' and not shot_used:
                 if self.shoot_wait < 1:
                     self.shoot(item['x'], item['y'])
                     self.shoot_wait = self.reload_delay
+                    shot_used = True
                 else:
                     self.shoot_wait -= 1
 
