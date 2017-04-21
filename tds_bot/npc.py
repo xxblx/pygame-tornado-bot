@@ -119,6 +119,8 @@ class HeroBullet(NPC):
 class Enemy(NPC):
     """ Base class for npc enemy """
 
+    power = 2
+
     def process(self, hero_x, hero_y):
         x, y = self.rect.center
         x_step = y_step = 0
@@ -146,7 +148,6 @@ class EnemyGreen(Enemy):
 
     enemy_class = 'green'
     color = (51, 222, 32)
-    power = 5
     speed = 1
 
 
@@ -155,7 +156,6 @@ class EnemyYellow(Enemy):
 
     enemy_class = 'yellow'
     color = (255, 230, 0)
-    power = 5
     speed = 2
 
 
@@ -164,5 +164,4 @@ class EnemyRed(Enemy):
 
     enemy_class = 'red'
     color = (236, 0, 0)
-    power = 5
     speed = 3
