@@ -13,7 +13,7 @@ import tornado.websocket
 from tornado.queues import Queue
 from tornado.concurrent import run_on_executor
 
-from .npc import Hero, EnemyGreen
+from .npc import Hero, EnemyGreen, EnemyYellow, EnemyRed
 
 
 class BotServerApp(tornado.web.Application):
@@ -67,6 +67,8 @@ class BotServerApp(tornado.web.Application):
         """
 
         self.score = 0
+        self.passed_time = 0
+
         self.hero = Hero(
             int(self.screen_width / 2) - int(self.hero_size / 2),
             int(self.screen_height / 2) - int(self.hero_size / 2),
@@ -86,31 +88,9 @@ class BotServerApp(tornado.web.Application):
         hero_x, hero_y = self.hero.rect.center
         hero_died = False
 
-        # TODO: enemy spawn at iterator steps
         enemies = []
-        for i in range(100):
-
-            x = randint(0, self.screen_width-10)
-            y = randint(0, self.screen_height-10)
-            dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
-
-            # Don't spawn enemies near to hero
-            while dt <= self.hero_radius*5:
-                x = randint(10, self.screen_width) - 10
-                y = randint(10, self.screen_height) - 10
-                dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
-
-            enemies.append(
-                EnemyGreen(
-                    x,  # x
-                    y,  # y
-                    self.enemy_size,
-                    self.enemy_radius,
-                    self.screen_width,
-                    self.screen_height,
-                    num=i  # enemy num (like id)
-                )
-            )
+        enemies_max = 3
+        enemies_unlocked = 1
 
         self.client.write_message(json.dumps({'status': 1}))
 
@@ -211,19 +191,68 @@ class BotServerApp(tornado.web.Application):
             # If hero is dead - gameover >_<
             if hero_died:
                 self.client.write_message(
-                    json.dumps({'status': 0, 'score': self.score})
+                    json.dumps({
+                        'status': 0,
+                        'score': self.score,
+                        'time': self.passed_time
+                    })
                 )
                 self.gameover = True
                 continue
 
             # Send info about objects on screen to client
             self.client.write_message(
-                json.dumps(
+                json.dumps({
+                    'objects': objects_list,
+                    'hp': self.hero_hp,
+                    'status': 1,
                     # sends cords for !center! of hero circle
-                    {'objects': objects_list, 'hp': self.hero_hp, 'status': 1,
-                     'x': hero_x, 'y': hero_y, 'score': self.score}
-                )
+                    'x': hero_x,
+                    'y': hero_y,
+                    'score': self.score,
+                    'time': self.passed_time
+                })
             )
+
+            # Enemies spawn
+            for i in range(enemies_max - len(enemies)):
+                x = randint(0, self.screen_width-10)
+                y = randint(0, self.screen_height-10)
+                dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
+
+                # Don't spawn enemies near to hero
+                while dt <= self.hero_radius*5:
+                    x = randint(0, self.screen_width) - 20
+                    y = randint(0, self.screen_height) - 20
+                    dt = np.sqrt((x - hero_x)**2 + (y - hero_y)**2)
+
+                # Create random enemy type
+                idx = randint(1, enemies_unlocked)
+                enemy_choosed = EnemyGreen
+                if idx == 2:
+                    enemy_choosed = EnemyYellow
+                elif idx == 3:
+                    enemy_choosed = EnemyRed
+
+                enemies.append(
+                    enemy_choosed(
+                        x,  # x
+                        y,  # y
+                        self.enemy_size,
+                        self.enemy_radius,
+                        self.screen_width,
+                        self.screen_height,
+                        num=i  # enemy num (like id)
+                    )
+                )
+
+            # +1 to max enemies every 100 iteration steps
+            if (self.score+1) % 100 == 0:
+                enemies_max += 1
+
+            # Unlock new enemies every 1000 iteration steps
+            if (self.score+1) % 1000 == 0 and enemies_unlocked < 3:
+                enemies_unlocked += 1
 
             # HP indicator
             hp_label = self.font.render(
@@ -231,12 +260,14 @@ class BotServerApp(tornado.web.Application):
             )
             self.screen.blit(hp_label, (25, 25))
 
-            # Score (time in game) indicator
-            self.score = int(pygame.time.get_ticks() / 1000)
+            # Score indicator
             score_label = self.font.render(
                 'Score: %d' % self.score, 1, (255, 255, 255)
             )
             self.screen.blit(score_label, (25, 50))
+
+            self.score += 1
+            self.passed_time = int(pygame.time.get_ticks() / 1000)
 
             pygame.display.flip()
             self.clock.tick(self.fps)
