@@ -141,9 +141,9 @@ class BotServerApp(tornado.web.Application):
 
                 # Delete bullets if they escape screen
                 bx, by = bullet.rect.x, bullet.rect.y
-                if bx < -bullet.size or bx >= self.screen_width+bullet.size:
+                if bx < -bullet.size or bx > self.screen_width:
                     bullet_rm_set.add(bullet)
-                elif by < -bullet.size or by >= self.screen_height+bullet.size:
+                elif by < -bullet.size or by > self.screen_height:
                     bullet_rm_set.add(bullet)
 
             for bullet in bullet_rm_set:
@@ -293,7 +293,7 @@ class BotServerApp(tornado.web.Application):
 class GameHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
-        print('ws client connected', self.application.client)
+        print('ws client connected')
         if self.application.client is None:
             self.application.client = self
         else:
