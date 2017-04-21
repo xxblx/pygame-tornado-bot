@@ -154,7 +154,7 @@ class EnemyYellow(Enemy):
     enemy_class = 'yellow'
     color = (255, 230, 0)
     power = 5
-    speed = 1
+    speed = 2
 
 
 class EnemyRed(Enemy):
