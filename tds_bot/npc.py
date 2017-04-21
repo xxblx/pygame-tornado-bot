@@ -11,6 +11,7 @@ class NPC:
                  speed=None, num=None, bullets=None, reload_delay=None,
                  bullet_size=None, bullet_radius=None, bullet_speed=None,
                  x_step=None, y_step=None):
+
         self.rect = pygame.Rect(pos_x, pos_y, size, size)
         self.size = size
         self.radius = radius
@@ -122,6 +123,7 @@ class Enemy(NPC):
         x, y = self.rect.center
         x_step = y_step = 0
 
+        # Simple move enemy to hero
         if hero_x > x:
             x_step = self.speed
         elif hero_x < x:
