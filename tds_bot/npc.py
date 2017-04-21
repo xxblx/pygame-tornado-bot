@@ -48,11 +48,25 @@ class NPC:
     def move(self, x_step=0, y_step=0, borders=True):
 
         if borders:  # bullets must ignore screen borders
+            # x moving
             if self.x <= 0 or self.x >= self.screen_width - self.size:
                 x_step = 0
 
+            elif 0 < self.screen_width - self.x + self.size < self.speed:
+                x_step = self.screen_width - self.x + self.size
+
+            elif 0 < self.x < self.speed:
+                x_step = -(self.speed - self.x)
+
+            # y moving
             if self.y <= 0 or self.y >= self.screen_height - self.size:
                 y_step = 0
+
+            elif 0 < self.screen_height - self.y + self.size < self.speed:
+                y_step = self.screen_height - self.y + self.size
+
+            elif 0 < self.y < self.speed:
+                y_step = -(self.speed - self.y)
 
         self.rect = self.rect.move(x_step, y_step)
 
