@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
+
 import numpy as np
 
 from tds_bot.client import WebsocketClient
@@ -63,6 +65,16 @@ class Client(WebsocketClient):
         self.write(hero_cmds)
 
 
-if __name__ == '__main__':
-    c = Client('ws://127.0.0.1:13228')
+def main():
+    parser = argparse.ArgumentParser(prog='pygame tornado bot client')
+    parser.add_argument('--host', type=str, default='127.0.0.1')
+    parser.add_argument('--port', type=int, default=7691)
+    args = parser.parse_args()
+
+    url = 'ws://%s:%d' % (args.host, args.port)
+    c = Client(url)
     c.run()
+
+
+if __name__ == '__main__':
+    main()
