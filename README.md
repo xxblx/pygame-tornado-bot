@@ -1,6 +1,5 @@
 
 # Pygame Tornado Bot
-
 Simple top-down shooter where Hero controlled by bot. User's goal is developing instructions for bot.
 
 On every iteration of gameworld's eventloop Client got JSON with information about Hero's HP, center x and center y, game status and list of all enemies on screen (enemies cordinates, classes, ids), etc, and can to send reply with JSON with instructions what actually Hero need to do. When Hero dies, server return JSON with score and passed game time. Score is passed gameworld eventloop iterations.
@@ -10,7 +9,6 @@ Powered by Tornado with implemented pygame event loop. Client sends instructions
 Tested on Fedora 25 x86_64 with Python 3.5.3, Tornado 4.4.2 and Pygame 1.9.2a0. Doesn't work on macOS because creates UI not in main thread.
 
 # Usage
-
 1. Edit start_client.Client.process method for yours proporsals
 
  * Place yours commands to ```hero_cmds['cmd_lst']``` as dictionaries like ```{'cmd': 'shoot', 'x': enemy_x, 'y': enemy_y}```.
@@ -42,6 +40,10 @@ Bullet kills enemy with one hit and destroys.
 ## Enemies
 Radius = 10, power = 2 (one collisions hit user to 2 hp). Spawns at least at distance of 5 Hero's radiuses from Hero's center. Enemies always going to Hero's center.
 
+On game start unlocked only easy enemies. Medium enemies unlocks on 1000 gameworld eventloop iteration, hard enemies unlocks on 2000 iteration.
+
+With game start maximum enemies on screen set to 3. On every 100 iteration maximum on screen enemies count increase by 1. That mean at 356 iteration maximum on screen enemies count is 6 (3 on start + 1 on 100 iteration + 1 on 200 iteration + 1 on 300 iteration).
+
 ### Easy enemy
 Color = green, speed = 1
 
@@ -52,7 +54,6 @@ Color = yellow, speed = 2
 Color = red, speed = 3
 
 # Additional info
-
 Licensed under zlib/libpng license. See LICENSE for details.
 
 Oleg Kozlov (xxblx), 2017
