@@ -66,6 +66,7 @@ class BotServerApp(tornado.web.Application):
         game runs until self.gameover =! False
         """
 
+        self.score = 0
         self.hero = Hero(
             int(self.screen_width / 2) - int(self.hero_size / 2),
             int(self.screen_height / 2) - int(self.hero_size / 2),
@@ -199,32 +200,43 @@ class BotServerApp(tornado.web.Application):
 
                 # Enemy description
                 enemy_info = {
-                    # cords for !center! of enemy circle
+                    # sends cords for !center! of enemy circle
                     'x': enemy_x,
                     'y': enemy_y,
                     'enemy_class': enemy.enemy_class,
                     'num': enemy.num
-                    # TODO: enemy bullets
                 }
                 objects_list.append(enemy_info)
 
             # If hero is dead - gameover >_<
             if hero_died:
-                self.client.write_message(json.dumps({'status': 0}))
+                self.client.write_message(
+                    json.dumps({'status': 0, 'score': self.score})
+                )
                 self.gameover = True
                 continue
 
             # Send info about objects on screen to client
             self.client.write_message(
                 json.dumps(
-                    # cords for !center! of hero circle
+                    # sends cords for !center! of hero circle
                     {'objects': objects_list, 'hp': self.hero_hp, 'status': 1,
-                     'x': hero_x, 'y': hero_y}
+                     'x': hero_x, 'y': hero_y, 'score': self.score}
                 )
             )
 
-            # TODO: hp status
-            # TODO: time in game
+            # HP indicator
+            hp_label = self.font.render(
+                'HP: %d' % self.hero_hp, 1, (255, 255, 255)
+            )
+            self.screen.blit(hp_label, (25, 25))
+
+            # Score (time in game) indicator
+            self.score = int(pygame.time.get_ticks() / 1000)
+            score_label = self.font.render(
+                'Score: %d' % self.score, 1, (255, 255, 255)
+            )
+            self.screen.blit(score_label, (25, 50))
 
             pygame.display.flip()
             self.clock.tick(self.fps)
@@ -236,11 +248,13 @@ class BotServerApp(tornado.web.Application):
         self.clock = pygame.time.Clock()
         pygame.init()
         pygame.display.init()
+        self.font = pygame.font.SysFont('sans', 12)
 
     def stop_game_engine(self):
         self.screen.fill((0, 0, 0))
         self.screen = None
-        self.game_matrix = None
+        self.font = None
+
         pygame.display.quit()
         pygame.quit()
 

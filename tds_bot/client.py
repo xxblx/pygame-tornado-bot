@@ -33,7 +33,7 @@ class WebsocketClient:
             if doc['status'] != 0:
                 self.process(doc)
             else:
-                print('You dided')
+                print('You dided. Score: %d.' % doc['score'])
                 self.connect.close()
                 break
 
