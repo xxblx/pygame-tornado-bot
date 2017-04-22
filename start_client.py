@@ -69,10 +69,12 @@ def main():
     parser = argparse.ArgumentParser(prog='pygame tornado bot client')
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--port', type=int, default=7691)
+    parser.add_argument('-u', '--username', type=str)
+    parser.add_argument('-t', '--token', type=str)
     args = parser.parse_args()
 
     url = 'ws://%s:%d' % (args.host, args.port)
-    c = Client(url)
+    c = Client(url, args.username, args.token)
     c.run()
 
 

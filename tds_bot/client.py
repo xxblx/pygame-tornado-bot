@@ -9,8 +9,10 @@ from tornado.websocket import websocket_connect
 
 class WebsocketClient:
 
-    def __init__(self, url):
+    def __init__(self, url, username=None, token=None):
         self.url = url
+        self.username = username
+        self.token = token
         self.ioloop = tornado.ioloop.IOLoop.current()
 
     def process(self, doc):
@@ -22,6 +24,11 @@ class WebsocketClient:
     @tornado.gen.coroutine
     def start_chat(self):
         self.connect = yield websocket_connect(self.url)
+        self.write({
+            'server_cmd': 'start_game',
+            'username': self.username,
+            'token': self.token
+        })
 
         while True:
             msg = yield self.connect.read_message()
@@ -33,8 +40,10 @@ class WebsocketClient:
             if doc['status'] != 0:
                 self.process(doc)
             else:
-                msg = 'You died in %d seconds. Score: %d.'
-                print(msg % (doc['time'], doc['score']))
+                msg = 'You died in %d seconds. Score: %d. Killed enemies: %d.'
+                print(msg % (doc['time'], doc['score'], doc['kills']))
+                if doc['results_saved']:
+                    print('Results saved to db.')
                 self.connect.close()
                 break
 

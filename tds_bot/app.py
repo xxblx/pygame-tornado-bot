@@ -2,6 +2,7 @@
 
 import json
 from random import randint
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 import pygame
@@ -14,6 +15,11 @@ from tornado.queues import Queue
 from tornado.concurrent import run_on_executor
 
 from .npc import Hero, EnemyGreen, EnemyYellow, EnemyRed
+
+try:
+    from motor import MotorClient
+except ImportError:
+    MotorClient = None
 
 
 class BotServerApp(tornado.web.Application):
@@ -37,7 +43,7 @@ class BotServerApp(tornado.web.Application):
     enemy_radius = 10
     enemy_size = enemy_radius * 2
 
-    def __init__(self):
+    def __init__(self, log_res=None, dbhost=None, dbport=None):
         handlers = [
             (r'/', GameHandler)
         ]
@@ -46,14 +52,32 @@ class BotServerApp(tornado.web.Application):
 
         self.executor = ThreadPoolExecutor(4)
         self.client = None
+        self.client_credentials = None
+
+        self.log_res = log_res
+        if log_res:
+            self.init_db(dbhost, dbport)
 
         self.queue = Queue()
 
         print('bot app __init__')
         super(BotServerApp, self).__init__(handlers, **settings)
 
+    def init_db(self, dbhost, dbport):
+        if MotorClient is None:
+            raise Exception('Motor is not installed. Install it or \
+                            start server without results saving')
+
+        dbclient = MotorClient(dbhost, dbport)
+        self.db = dbclient['pygame_bot']
+
     @tornado.gen.coroutine
-    def start_game(self):
+    def start_game(self, username, token):
+        if username is not None and token is not None:
+            self.client_credentials = {
+                'username': username, 'token': token
+            }
+
         self.gameover = False
         self.start_game_engine()
         yield self.run_game()
@@ -68,6 +92,7 @@ class BotServerApp(tornado.web.Application):
 
         self.score = 0
         self.passed_time = 0
+        self.kills = 0
 
         self.hero = Hero(
             int(self.screen_width / 2) - int(self.hero_size / 2),
@@ -137,6 +162,7 @@ class BotServerApp(tornado.web.Application):
                             break
 
                 if enemy_killed:
+                    self.kills += 1
                     continue
 
                 # Delete bullets if they escape screen
@@ -190,14 +216,23 @@ class BotServerApp(tornado.web.Application):
 
             # If hero is dead - gameover >_<
             if hero_died:
+                self.gameover = True
+                results_saved = None
+
+                if self.client_credentials is not None:
+                    results_saved = yield self.save_results()
+
+                # Send message to client about gameover
                 self.client.write_message(
                     json.dumps({
                         'status': 0,
                         'score': self.score,
-                        'time': self.passed_time
+                        'time': self.passed_time,
+                        'kills': self.kills,
+                        'results_saved': results_saved
                     })
                 )
-                self.gameover = True
+
                 continue
 
             # Send info about objects on screen to client
@@ -272,6 +307,31 @@ class BotServerApp(tornado.web.Application):
             pygame.display.flip()
             self.clock.tick(self.fps)
 
+    @tornado.gen.coroutine
+    def save_results(self):
+        """ Save results to db """
+
+        username = self.client_credentials['username']
+        token = self.client_credentials['token']
+
+        # If user-token combination exists save results to db
+        userdoc = yield self.db.users.find_one(
+            {'username': username, 'token': token}
+        )
+
+        if userdoc is None:
+            return False
+
+        yield self.db.results.insert({
+            'username': username,
+            'score': self.score,
+            'kills': self.kills,
+            'passed_time': self.passed_time,
+            'insert_time': datetime.now()
+        })
+
+        return True
+
     def start_game_engine(self):
         self.screen = pygame.display.set_mode(
             (self.screen_width, self.screen_height)
@@ -299,14 +359,17 @@ class GameHandler(tornado.websocket.WebSocketHandler):
         else:
             self.write_message('server already used')
             self.close()
-            return
-
-        self.application.start_game()
 
     def on_message(self, msg):
-        self.application.queue.put(json.loads(msg))
+        doc = json.loads(msg)
+        if 'server_cmd' in doc:
+            if doc['server_cmd'] == 'start_game':
+                self.application.start_game(doc['username'], doc['token'])
+        else:
+            self.application.queue.put(doc)
 
     def on_close(self):
         self.application.gameover = True
         self.application.client = None
+        self.application.client_credentials = None
         self.application.stop_game_engine()
