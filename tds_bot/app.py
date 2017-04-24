@@ -345,6 +345,7 @@ class BotServerApp(tornado.web.Application):
         self.screen.fill((0, 0, 0))
         self.screen = None
         self.font = None
+        self.clock = None
 
         pygame.display.quit()
         pygame.quit()
