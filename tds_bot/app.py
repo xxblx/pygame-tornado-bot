@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import time
 import json
 from random import randint
 from datetime import datetime
@@ -92,6 +93,7 @@ class BotServerApp(tornado.web.Application):
 
         self.score = 0
         self.passed_time = 0
+        game_start_time = time.time()
         self.kills = 0
 
         self.hero = Hero(
@@ -302,7 +304,7 @@ class BotServerApp(tornado.web.Application):
             self.screen.blit(score_label, (25, 50))
 
             self.score += 1
-            self.passed_time = int(pygame.time.get_ticks() / 1000)
+            self.passed_time = np.floor(time.time() - game_start_time)
 
             pygame.display.flip()
             self.clock.tick(self.fps)
