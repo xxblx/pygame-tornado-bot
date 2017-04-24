@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--log_res', action='store_true', default=False)
     parser.add_argument('--dbhost', type=str, default='127.0.0.1')
     parser.add_argument('--dbport', type=int, default=27017)
+    parser.add_argument('--ignore_sigint', action='store_true', default=False)
     args = parser.parse_args()
 
     app = BotServerApp(args.log_res, args.dbhost, args.dbport)
@@ -26,7 +27,8 @@ def main():
         ioloop = tornado.ioloop.IOLoop.current()
         ioloop.start()
     except KeyboardInterrupt:
-        app.gameover = True
+        if not args.ignore_sigint:
+            app.gameover = True
     finally:
         ioloop.stop()
 
