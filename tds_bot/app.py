@@ -44,6 +44,8 @@ class BotServerApp(tornado.web.Application):
     enemy_radius = 10
     enemy_size = enemy_radius * 2
 
+    enemies_spawned = 0
+
     def __init__(self, log_res=None, dbhost=None, dbport=None):
         handlers = [
             (r'/', GameHandler)
@@ -279,9 +281,11 @@ class BotServerApp(tornado.web.Application):
                         self.enemy_radius,
                         self.screen_width,
                         self.screen_height,
-                        num=i  # enemy num (like id)
+                        num=self.enemies_spawned  # enemy num (like id)
                     )
                 )
+
+                self.enemies_spawned += 1
 
             # +1 to max enemies every 100 iteration steps
             if (self.score+1) % 100 == 0:
